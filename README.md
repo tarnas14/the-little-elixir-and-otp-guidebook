@@ -1,6 +1,13 @@
-# Pooly
+# The Little Elixir & OTP Guidebook
 
-Note: I'm aware that you would probably not want to implement a worker pool this way.
+This is my repo with the implementation of examples from "The Little Elixir & OTP Guidebook".
+
+I'm learning elixir ([more on that here](http://willcodeforskipass.com/blog/im-gonna-learn-elixir-again/)) and I'm following this book to grasp fundamentals.
+Originally I didn't plan on doing this repository, however, I found that the biggest example in the book (the worker pool application from chapter 6 and 7) is... not working as intended if you follow the book.
+
+Note: I'm using the "The Little Elixir & OTP Guidebook - corrected 9182019" version. (ISBN 9781633430112)
+
+Note #2: I'm aware that you would probably not want to implement a worker pool this way.
 You wouldn't even want to implement a worker pool on your own, I'm perfectly aware there must be tons of good implementations out there already.
 This is an exercise to learn elixir and OTP primitives and we should treat it as such.
 
@@ -59,7 +66,7 @@ In order of things I thought of and tried
 
 ### Link the workers with the `PoolServer`
 
-Branch: [`link-workers-to-poolserver`](https://github.com/tarnas14/the-little-elixir-and-otp-guidebook/tree/link-workers-to-poolserver) (second to last commit)
+Branch: [`link-workers-to-poolserver`](https://github.com/tarnas14/the-little-elixir-and-otp-guidebook/tree/link-workers-to-poolserver)
 
 In this [not elegant?] solution,
 - workers are set as _:temporary_, so supervisor doesn't restart them (so what's the point of the supervisor, eh?)
@@ -76,7 +83,7 @@ Which brings us to:
 
 ### Have the `PoolServer` monitor the workers
 
-Branch: [`monitor-the-workers`](https://github.com/tarnas14/the-little-elixir-and-otp-guidebook/tree/monitor-the-workers) (second to last commit)
+Branch: [`monitor-the-workers`](https://github.com/tarnas14/the-little-elixir-and-otp-guidebook/tree/monitor-the-workers)
 
 In this we are (I think) using the more applicable primitive of the language - _monitoring_.
 We removed the coupling between `PoolServer` and workers and it gives me great joy, because now workers do not care what they are managed by.
