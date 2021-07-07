@@ -135,8 +135,9 @@ defmodule Pooly.PoolServer do
         new_state = handle_worker_exit(pid, state)
         {:noreply, new_state}
 
-      [[]] ->
-        {:noreply, state}
+      [] ->
+        new_state = handle_worker_exit(pid, state)
+        {:noreply, new_state}
     end
   end
 
@@ -243,7 +244,7 @@ defmodule Pooly.PoolServer do
     Supervisor.terminate_child(sup, pid)
   end
 
-  defp handle_worker_exit(_pid, state) do
+  defp handle_worker_exit(exited_worker_pid, state) do
     %{
       worker_sup: worker_sup,
       workers: workers,
@@ -253,18 +254,20 @@ defmodule Pooly.PoolServer do
       imfa: imfa
     } = state
 
+    workers_without_exited = workers |> Enum.filter(fn x -> x != exited_worker_pid end)
+
     case :queue.out(waiting) do
       {{:value, {from, ref}}, left_waiting} ->
         new_worker = new_worker(worker_sup, imfa)
         true = :ets.insert(monitors, {new_worker, ref})
         GenServer.reply(from, new_worker)
-        %{state | waiting: left_waiting}
+        %{state | workers: [new_worker | workers_without_exited], waiting: left_waiting}
 
       {:empty, empty} when overflow > 0 ->
-        %{state | waiting: empty, overflow: overflow - 1}
+        %{state | workers: workers_without_exited, waiting: empty, overflow: overflow - 1}
 
       {:empty, empty} ->
-        %{state | waiting: empty, workers: [new_worker(worker_sup, imfa) | workers]}
+        %{state | waiting: empty, workers: [new_worker(worker_sup, imfa) | workers_without_exited]}
     end
   end
 
