@@ -132,9 +132,6 @@ defmodule Pooly.PoolServer do
           [] ->
             new_state = handle_worker_exit(downed_pid, state)
             {:noreply, new_state}
-
-          _ ->
-            {:noreply, state}
         end
 
       _ ->
@@ -255,6 +252,7 @@ defmodule Pooly.PoolServer do
     } = state
 
     :ok = demonitor_worker(downed_pid, state)
+    workers_without_exited = workers |> Enum.filter(fn {pid, _ref} -> pid != downed_pid end)
 
     case :queue.out(waiting) do
       {{:value, {from, ref}}, left_waiting} ->
@@ -262,13 +260,17 @@ defmodule Pooly.PoolServer do
         {new_worker_pid, _worker_ref} = new_worker
         true = :ets.insert(monitors, {new_worker_pid, ref})
         GenServer.reply(from, new_worker_pid)
-        %{state | waiting: left_waiting}
+        %{state | workers: workers_without_exited, waiting: left_waiting}
 
       {:empty, empty} when overflow > 0 ->
-        %{state | waiting: empty, overflow: overflow - 1}
+        %{state | workers: workers_without_exited, waiting: empty, overflow: overflow - 1}
 
       {:empty, empty} ->
-        %{state | waiting: empty, workers: [new_worker(worker_sup, imfa) | workers]}
+        %{
+          state
+          | workers: [new_worker(worker_sup, imfa) | workers_without_exited],
+            waiting: empty
+        }
     end
   end
 
@@ -277,6 +279,7 @@ defmodule Pooly.PoolServer do
       [{_pid, ref}] ->
         Process.demonitor(ref)
         :ok
+
       [] ->
         :ok
     end
