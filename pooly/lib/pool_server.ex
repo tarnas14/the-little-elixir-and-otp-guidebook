@@ -119,6 +119,10 @@ defmodule Pooly.PoolServer do
     end
   end
 
+  def handle_info({:EXIT, worker_sup, reason}, %{worker_sup: worker_sup} = state) do
+    {:stop, reason, state}
+  end
+
   # handling worker exit?
   def handle_info(
         {:EXIT, pid, _reason},

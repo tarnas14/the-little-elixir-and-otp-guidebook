@@ -15,8 +15,6 @@ defmodule Pooly.WorkerSupervisor do
   # callbacks
 
   def init([pool_server, max_workers_with_overflow]) do
-    IO.puts(inspect pool_server)
-    IO.puts(inspect max_workers_with_overflow)
     Process.link(pool_server)
     DynamicSupervisor.init(
       strategy: :one_for_one,
