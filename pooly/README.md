@@ -59,7 +59,7 @@ In order of things I thought of and tried
 
 ### Link the workers with the `PoolServer`
 
-Branch: [`link-workers-to-poolserver`](https://github.com/tarnas14/the-little-elixir-and-otp-guidebook/tree/link-workers-to-poolserver) (second to last commit)
+Branch: [`link-workers-to-poolserver`](https://github.com/tarnas14/the-little-elixir-and-otp-guidebook/tree/link-workers-to-poolserver)
 
 In this [not elegant?] solution,
 - workers are set as _:temporary_, so supervisor doesn't restart them (so what's the point of the supervisor, eh?)
@@ -76,7 +76,7 @@ Which brings us to:
 
 ### Have the `PoolServer` monitor the workers
 
-Branch: [`monitor-the-workers`](https://github.com/tarnas14/the-little-elixir-and-otp-guidebook/tree/monitor-the-workers) (second to last commit)
+Branch: [`monitor-the-workers`](https://github.com/tarnas14/the-little-elixir-and-otp-guidebook/tree/monitor-the-workers)
 
 In this we are (I think) using the more applicable primitive of the language - _monitoring_.
 We removed the coupling between `PoolServer` and workers and it gives me great joy, because now workers do not care what they are managed by.
