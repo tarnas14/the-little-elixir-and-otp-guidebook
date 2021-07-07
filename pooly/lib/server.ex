@@ -1,5 +1,6 @@
 defmodule Pooly.Server do
   use GenServer
+  import Supervisor.Spec
 
   defmodule State do
     defstruct sup: nil, worker_sup: nil, size: nil, workers: nil, imfa: nil, monitors: nil
@@ -31,10 +32,13 @@ defmodule Pooly.Server do
   end
 
   def handle_info({:start_pool, pool_config}, state) do
-    {:ok, _pool_sup} = Pooly.PoolsSupervisor.start_child(pool_config)
+    {:ok, _pool_sup} = Supervisor.start_child(Pooly.PoolsSupervisor, supervisor_spec(pool_config))
     {:noreply, state}
   end
 
   # privates
-
+  defp supervisor_spec(pool_config) do
+    opts = [id: :"#{pool_config[:name]}Supervisor"]
+    supervisor(Pooly.PoolSupervisor, [pool_config], opts)
+  end
 end

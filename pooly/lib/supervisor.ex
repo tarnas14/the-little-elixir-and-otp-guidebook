@@ -7,17 +7,11 @@ defmodule Pooly.Supervisor do
 
   def init(pools_config) do
     children = [
-      %{
-        id: Pooly.PoolsSupervisor,
-        start: {Pooly.PoolsSupervisor, :start_link, []},
-        type: :supervisor
-      },
-      %{
-        id: Pooly.Server,
-        start: {Pooly.Server, :start_link, [pools_config]}
-      }
+      supervisor(Pooly.PoolsSupervisor, []),
+      worker(Pooly.Server, [pools_config])
     ]
+    opts = [strategy: :one_for_all]
 
-    Supervisor.init(children, strategy: :one_for_all)
+    supervise(children, opts)
   end
 end

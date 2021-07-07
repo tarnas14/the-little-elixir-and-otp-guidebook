@@ -1,22 +1,14 @@
 defmodule Pooly.PoolsSupervisor do
-  use DynamicSupervisor
+  use Supervisor
 
   def start_link do
-    DynamicSupervisor.start_link(__MODULE__, [], name: __MODULE__)
-  end
-
-  def start_child(pool_config) do
-    {id, m, f, a} = pool_config[:imfa]
-    DynamicSupervisor.start_child(__MODULE__, %{
-      id: :"#{pool_config[:name]}Supervisor",
-      start: {Pooly.PoolSupervisor, :start_link, [pool_config]},
-      type: :supervisor
-    })
+    Supervisor.start_link(__MODULE__, [], name: __MODULE__)
   end
 
   def init(_) do
-    DynamicSupervisor.init(
+    opts = [
       strategy: :one_for_one
-    )
+    ]
+    supervise([], opts)
   end
 end

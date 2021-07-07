@@ -1,5 +1,6 @@
 defmodule Pooly.PoolServer do
   use GenServer
+  import Supervisor.Spec
 
   defmodule State do
     defstruct pool_sup: nil,
@@ -119,7 +120,10 @@ defmodule Pooly.PoolServer do
     end
   end
 
-  # handling worker exit?
+  def handle_info({:EXIT, worker_sup, reason}, state = %{worker_sup: worker_sup}) do
+    {:stop, reason, state}
+  end
+
   def handle_info(
         {:EXIT, pid, _reason},
         state = %{monitors: monitors}
@@ -174,14 +178,15 @@ defmodule Pooly.PoolServer do
     :"#{pool_name}Server"
   end
 
-  defp supervisor_spec(%{name: name, size: size, max_overflow: max_overflow}) do
-    max_allowed_workers = size + max_overflow
-    %{
-      id: name <> "WorkerSupervisor",
-      start: {Pooly.WorkerSupervisor, :start_link, [self, max_allowed_workers]},
-      restart: :temporary,
-      type: :supervisor
-    }
+  defp supervisor_spec(%{name: name, imfa: imfa}) do
+    opts = [id: name <> "WorkerSupervisor", restart: :temporary]
+    supervisor(Pooly.WorkerSupervisor, [self, imfa], opts)
+    # %{
+      # id: name <> "WorkerSupervisor",
+      # start: {Pooly.WorkerSupervisor, :start_link, [self]},
+      # restart: :temporary,
+      # type: :supervisor
+    # }
   end
 
   defp prepopulate(size, worker_sup, imfa) do
@@ -197,7 +202,7 @@ defmodule Pooly.PoolServer do
   end
 
   defp new_worker(worker_sup, imfa) do
-    case Pooly.WorkerSupervisor.start_child(worker_sup, imfa) do
+    case Supervisor.start_child(worker_sup, [[]]) do
       {:ok, worker} ->
         worker
 

@@ -1,27 +1,21 @@
 defmodule Pooly.WorkerSupervisor do
-  use DynamicSupervisor
+  use Supervisor
 
   # api
 
-  def start_link(pool_server, max_workers_with_overflow) do
-    DynamicSupervisor.start_link(__MODULE__, [pool_server, max_workers_with_overflow])
-  end
-
-  def start_child(worker_sup, {id, m, f, a} = _imfa) do
-    spec = %{id: id, start: {m, f, a}}
-    DynamicSupervisor.start_child(worker_sup, spec)
+  def start_link(pool_server, {_,_,_,_} = imfa) do
+    Supervisor.start_link(__MODULE__, [pool_server, imfa])
   end
 
   # callbacks
 
-  def init([pool_server, max_workers_with_overflow]) do
-    IO.puts(inspect pool_server)
-    IO.puts(inspect max_workers_with_overflow)
+  def init([pool_server, {i, m, f, a}]) do
     Process.link(pool_server)
-    DynamicSupervisor.init(
-      strategy: :one_for_one,
-      extra_arguments: [pool_server],
-      max_children: max_workers_with_overflow
-    )
+    worker_opts = [restart: :permanent, shutdown: 5000, function: f]
+    children = [worker(m, a, worker_opts)]
+
+    opts = [strategy: :simple_one_for_one, max_restarts: 5, max_seconds: 5]
+
+    supervise(children, opts)
   end
 end
