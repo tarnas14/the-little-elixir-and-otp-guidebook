@@ -3,8 +3,8 @@ defmodule Pooly.SampleWorker do
 
   # api
 
-  def start_link(_) do
-    GenServer.start_link(__MODULE__, :ok, [])
+  def start_link(pool_server_pid, _) do
+    GenServer.start_link(__MODULE__, pool_server_pid)
   end
 
   def stop(pid) do
@@ -13,6 +13,11 @@ defmodule Pooly.SampleWorker do
 
   def work_for(pid, duration) do
     GenServer.cast(pid, {:work_for, duration})
+  end
+
+  def init(pool_server_pid) do
+    Process.link(pool_server_pid)
+    {:ok, :ok}
   end
 
   def handle_call(:stop, _from, state) do
